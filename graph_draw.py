@@ -101,7 +101,25 @@ def visualize_graph_list(graph_dict, filename):
         prev_layer_width = layer_width
         prev_layer = l[:]
                 
-        
-        
+    im.save(filename)
 
+def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
+    print "w,h", width, height
+    im = Image.new("RGB", (width, height), "white")    
+    d = ImageDraw.Draw(im)
+    for k, r in rooms.iteritems():
+        print "room:", r
+        x = r[0]+xoffset
+        y = r[1]+yoffset
+        box = (x, y, x+r[2], y+r[3])
+        print "box:", box
+        d.rectangle(box, outline="black")
+
+    for (c_s, c_e) in connections:
+        xs = rooms[c_s][0]+rooms[c_s][2]/2+xoffset
+        ys = rooms[c_s][1]+rooms[c_s][3]/2+yoffset
+        xe = rooms[c_e][0]+rooms[c_e][2]/2+xoffset
+        ye = rooms[c_e][1]+rooms[c_e][3]/2+yoffset
+
+        d.line((xs, ys, xe, ye), fill="black")
     im.save(filename)

@@ -5,11 +5,10 @@ import math
 from graph_draw import *
 from spanning_tree import *
 
-ROOM_SIZE_MIN = 1
-ROOM_SIZE_MAX = 5
-min_distance = ROOM_SIZE_MAX*3
-max_distance = ROOM_SIZE_MAX*10
-
+ROOM_SIZE_MIN = 30
+ROOM_SIZE_MAX = 50
+min_distance = ROOM_SIZE_MAX*2
+max_distance = ROOM_SIZE_MAX*3
 
 rooms = {}
 
@@ -64,6 +63,7 @@ def build_labyrinth(vertices):
     current_vertices = [0]
     w, h = rand_w_h()
     rooms[0] = (0, 0, w, h)
+    connections = []
 
     while True:
         # traverse children
@@ -71,6 +71,7 @@ def build_labyrinth(vertices):
         for cv in current_vertices:
             children = vertices[cv]
             for c in children:
+                connections.append((cv, c))
                 next_vertices.append(c)
                 while True:
                     w, h = rand_w_h()
@@ -86,6 +87,7 @@ def build_labyrinth(vertices):
         if next_vertices == []:
             break
         current_vertices = next_vertices
+    return connections
         
 
 depth = 3
@@ -98,7 +100,16 @@ gen_layer(vertices, vertices[0], 0, depth, max_width)
 
 visualize_graph_list(vertices, "out.png")
 
-build_labyrinth(vertices)
+connections = build_labyrinth(vertices)
 
 boundaries = find_boundaries(rooms)
 print "boundaries:", boundaries
+xoffset = -boundaries[0]
+yoffset = -boundaries[3]
+width = boundaries[1]-boundaries[0]
+height = boundaries[2]-boundaries[3]
+
+print "connections", connections
+
+draw_rooms(rooms, connections, xoffset, yoffset, int(width), int(height), "rooms.png")
+
