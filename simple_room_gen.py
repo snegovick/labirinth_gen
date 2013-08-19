@@ -1,42 +1,104 @@
 import sys
 import random
+import math
 
-WIDTH = 1000.0
-LENGTH = 2000.0
+from graph_draw import *
+from spanning_tree import *
 
-ROOM_SIZE_MIN = 1.0
-ROOM_SIZE_MAX = 5.0
+ROOM_SIZE_MIN = 1
+ROOM_SIZE_MAX = 5
+min_distance = ROOM_SIZE_MAX*3
+max_distance = ROOM_SIZE_MAX*10
 
-ROOM_COUNT = 1000
 
-taken = []
+rooms = {}
 
-def calc_area(taken):
-    area = 0
-    for w, h, x, y in taken:
-        area += w*h
-    return area
+def point_in_rect((x,y), (xr, yr, wr, hr)):
+    if (x>=xr and x<xr+wr) and (y>yr and y<yr+hr):
+        return True
+    return False
 
-if __name__ == "__main__":
+def rect_in_rect((x1, y1, w1, h1), (x2, y2, w2, h2)):
+    p1 = (x1, y1)
+    p2 = (x1, y1+h1)
+    p3 = (x1+w1, y1+h1)
+    p4 = (x1+w1, y1)
+    r = (x2, y2, w2, h2)
+    if point_in_rect(p1, r) or point_in_rect(p2, r) or point_in_rect(p3, r) or point_in_rect(p4, r):
+        return True
+    return False
 
-    print "simple room gen"
+def check_if_taken((x, y, w, h), rooms):
+    for k, r in rooms.iteritems():
+        if rect_in_rect((x, y, w, h), r):
+            return True
+    return False
 
-    for r in range(ROOM_COUNT):
-        w = random.random()*(ROOM_SIZE_MAX - ROOM_SIZE_MIN) + ROOM_SIZE_MIN
-        h = random.random()*(ROOM_SIZE_MAX - ROOM_SIZE_MIN) + ROOM_SIZE_MIN
+def rand_angle_dist():
+    a = random.randint(0, 360)
+    d = random.randint(min_distance, max_distance)
+    return a, d
+
+def rand_w_h():
+    w = random.randint(ROOM_SIZE_MIN, ROOM_SIZE_MAX)
+    h = random.randint(ROOM_SIZE_MIN, ROOM_SIZE_MAX)
+    return w, h
+
+def find_boundaries(rooms):
+    left = 0
+    right = 0
+    top = 0
+    bottom = 0
+    for k, v in rooms.iteritems():
+        if v[0]<left:
+            left = v[0]
+        if v[0]+v[2]>right:
+            right = v[0]+v[2]
+        if v[1]<bottom:
+            bottom = v[1]
+        if v[1]+v[3]>top:
+            top = v[1]+v[3]
+    return (left, right, top, bottom)
+
+def build_labyrinth(vertices):
+    current_vertices = [0]
+    w, h = rand_w_h()
+    rooms[0] = (0, 0, w, h)
+
+    while True:
+        # traverse children
+        next_vertices = []
+        for cv in current_vertices:
+            children = vertices[cv]
+            for c in children:
+                next_vertices.append(c)
+                while True:
+                    w, h = rand_w_h()
+                    a, d = rand_angle_dist()
+                    print "roomscv", rooms[cv]
+                    x, y = rooms[cv][0], rooms[cv][1]
+                    x_c = x+d*math.cos(a*math.pi/180)
+                    y_c = y+d*math.sin(a*math.pi/180)
+                    if not (check_if_taken((x_c, y_c, w, h), rooms)):
+                        rooms[c] = (x_c, y_c, w, h)
+                        break
+        # print rooms
+        if next_vertices == []:
+            break
+        current_vertices = next_vertices
         
-        while True:
-            x = random.random()*(WIDTH)
-            y = random.random()*(LENGTH)
-            can_add = True
-            for ow, oh, ox, oy in taken:
-                if abs(x - ox) < w+ow:
-                    can_add = False
-                    break
-                elif abs(y - oy) < h+oh:
-                    can_add = False
-                    break
-            if can_add == True:
-                taken.append((w, h, x, y))
-                break
-        print w, h, x, y, "area:", calc_area(taken), "room count:", len(taken)
+
+depth = 3
+max_width = 2
+vertices = {}
+    
+
+vertices[0] = []
+gen_layer(vertices, vertices[0], 0, depth, max_width)
+
+visualize_graph_list(vertices, "out.png")
+
+build_labyrinth(vertices)
+
+boundaries = find_boundaries(rooms)
+print "boundaries:", boundaries

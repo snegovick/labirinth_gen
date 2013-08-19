@@ -3,12 +3,8 @@ import random
 from  graph_draw import *
 random.seed(3)
 
-depth = random.randint(10, 30)
-depth = 3
-max_width = 5
-vertices = {}
 
-def gen_layer(vertices, parent, layer):
+def gen_layer(vertices, parent, layer, depth, max_width):
     if layer>=depth:
         return None
     # print "layer:", layer
@@ -19,9 +15,16 @@ def gen_layer(vertices, parent, layer):
         last_id = len(vertices)
         vertices[last_id] = []
         parent.append(last_id)
-        gen_layer(vertices, vertices[last_id], layer)
+        gen_layer(vertices, vertices[last_id], layer, depth, max_width)
 
-vertices[0] = []
-gen_layer(vertices, vertices[0], 0)
 
-visualize_graph_list(vertices, "out.png")
+if __name__ == "__main__":
+    depth = 3
+    max_width = 5
+    vertices = {}
+    
+    
+    vertices[0] = []
+    gen_layer(vertices, vertices[0], 0, depth, max_width)
+    
+    visualize_graph_list(vertices, "out.png")
