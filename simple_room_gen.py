@@ -5,12 +5,10 @@ import math
 from graph_draw import *
 from spanning_tree import *
 
-ROOM_SIZE_MIN = 30
-ROOM_SIZE_MAX = 50
-min_distance = ROOM_SIZE_MAX*2
-max_distance = ROOM_SIZE_MAX*3
-
-rooms = {}
+ROOM_SIZE_MIN = 20
+ROOM_SIZE_MAX = 40
+min_distance = ROOM_SIZE_MAX*4
+max_distance = ROOM_SIZE_MAX*7
 
 def point_in_rect((x,y), (xr, yr, wr, hr)):
     if (x>=xr and x<xr+wr) and (y>yr and y<yr+hr):
@@ -90,26 +88,32 @@ def build_labyrinth(vertices):
     return connections
         
 
-depth = 3
-max_width = 2
-vertices = {}
-    
+while True:
+    rooms = {}
+    depth = 4
+    max_width = 4
+    vertices = {}
 
-vertices[0] = []
-gen_layer(vertices, vertices[0], 0, depth, max_width)
 
-visualize_graph_list(vertices, "out.png")
+    vertices[0] = []
+    gen_layer(vertices, vertices[0], 0, depth, max_width)
 
-connections = build_labyrinth(vertices)
+    visualize_graph_list(vertices, "out.png")
 
-boundaries = find_boundaries(rooms)
-print "boundaries:", boundaries
-xoffset = -boundaries[0]
-yoffset = -boundaries[3]
-width = boundaries[1]-boundaries[0]
-height = boundaries[2]-boundaries[3]
+    connections = build_labyrinth(vertices)
 
-print "connections", connections
+    boundaries = find_boundaries(rooms)
+    print "boundaries:", boundaries
+    xoffset = -boundaries[0]
+    yoffset = -boundaries[3]
+    width = boundaries[1]-boundaries[0]
+    height = boundaries[2]-boundaries[3]
 
-draw_rooms(rooms, connections, xoffset, yoffset, int(width), int(height), "rooms.png")
+    print "connections", connections
+
+    if draw_rooms(rooms, connections, xoffset, yoffset, int(width), int(height), "rooms.png") != None:
+        break
+    print ""
+    print "Retrying"
+    print ""
 

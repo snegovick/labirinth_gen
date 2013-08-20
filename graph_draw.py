@@ -104,17 +104,32 @@ def visualize_graph_list(graph_dict, filename):
                 
     im.save(filename)
 
-def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
-    print "w,h", width, height
-    im = Image.new("RGB", (width, height), "white")    
-    d = ImageDraw.Draw(im)
+def put_rooms(rooms, m, xoffset, yoffset, exceptions):
     for k, r in rooms.iteritems():
-        print "room:", r
-        x = r[0]+xoffset
-        y = r[1]+yoffset
-        box = (x, y, x+r[2], y+r[3])
-        print "box:", box
-        d.rectangle(box, outline="black")
+        if k in exceptions:
+            continue
+        for i in range(r[2]+1):
+            for j in range(r[3]+1):
+                x = int(r[0]+xoffset+i)
+                y = int(r[1]+yoffset+j)
+                m[y][x] = 1
+
+def copy_map(m):
+    mc = []
+    for l in m:
+        mc.append(l[:])
+    return mc
+
+def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
+    if len(connections)>60 or len(connections)<40:
+        return None
+    border = 200
+    width = width+border
+    height = height+border
+    print "w,h", width, height
+
+    xoffset+=border/2
+    yoffset+=border/2
 
     map2d = [[0 for i in range(width)] for j in range(height)]
 
@@ -124,19 +139,35 @@ def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
     for k, r in rooms.iteritems():
         for i in range(r[2]):
             for j in range(r[3]):
-                x = int(r[0]+xoffset+j)
-                y = int(r[1]+yoffset+i)
+                x = int(r[0]+xoffset+i)
+                y = int(r[1]+yoffset+j)
                 forbidden_points.append((x, y))
+                #map2d[y][x] = 1
 
-    for (c_s, c_e) in connections:
+    paths = []
+    for i, (c_s, c_e) in enumerate(connections):
         xs = int(rooms[c_s][0]+rooms[c_s][2]/2+xoffset)
         ys = int(rooms[c_s][1]+rooms[c_s][3]/2+yoffset)
         xe = int(rooms[c_e][0]+rooms[c_e][2]/2+xoffset)
         ye = int(rooms[c_e][1]+rooms[c_e][3]/2+yoffset)
-        path = breadth_first_search(map2d, (xs, ys), (xe, ye))
+        print "Pass", i, "of", len(connections)
+        print "Prepare map"
+        mc = copy_map(map2d)
+        put_rooms(rooms, mc, xoffset, yoffset, (c_s, c_e))
+        print "Grow margin"
+        nm = grow_margin(mc, margin*3)
+        print "Find path"
+        print xs, ys, "->", xe, ye
+        path = breadth_first_search(nm, (xs, ys), (xe, ye))
         if path == None:
-            continue
-        for x,y in path:
+            print "path is None"
+            return None
+        paths.append(path)
+
+    print "Put paths"
+    for i, p in enumerate(paths):
+        print "Path", i
+        for x,y in p:
             for i in range(-margin/2, margin/2):
                 for j in range(-margin/2, margin/2):
                     if (x+i)<0 or (y+j)<0 or (x+i)>=width or (y+j)>=height:
@@ -144,14 +175,23 @@ def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
                     if (x+i, y+j) in forbidden_points:
                         continue
                     map2d[y+j][x+i] = 1
-        
-    im2 = Image.new("RGB", (width, height), "white")
+
+    im2 = map2d_to_im(map2d)
     d = ImageDraw.Draw(im2)
-    for y, l in enumerate(map2d):
-        for x, p in enumerate(l):
-            d.point((x, y), fill=("white" if p == 0 else "black"))
-                
-        #d.line((xs, ys, xe, ye), fill="black")
     
-    im.save(filename)
-    im2.save("paths.png")
+    for k, r in rooms.iteritems():
+        print "room:", r
+        x = r[0]+xoffset
+        y = r[1]+yoffset
+        box = (x, y, x+r[2], y+r[3])
+        print "box:", box
+        d.rectangle(box, outline="black", fill="black")
+        d.text((x+r[2]/2, y+r[3]/2), str(k))
+
+    map2d = im_to_list(im2)
+    print "Scale up"
+    nm = scale_up(map2d, 4)
+    im2 = map2d_to_im(nm)
+
+    im2.save(filename)
+    return True

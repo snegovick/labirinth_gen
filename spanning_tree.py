@@ -1,7 +1,6 @@
 import sys
 import random
 from  graph_draw import *
-random.seed(3)
 
 
 def gen_layer(vertices, parent, layer, depth, max_width):

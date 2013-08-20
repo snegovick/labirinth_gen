@@ -1,4 +1,5 @@
 import sys
+import Image, ImageDraw
 
 # 0 - can pass
 def breadth_first_search(m_map, (x_s, y_s), (x_e, y_e)):
@@ -17,7 +18,7 @@ def breadth_first_search(m_map, (x_s, y_s), (x_e, y_e)):
     # forward pass
     while True:
         step+=1
-        print step
+        # print step
         #find neighbours
         new_front = []
         for x, y in front:
@@ -76,6 +77,26 @@ def scale_down(m, factor):
                 nm[-1].append(0)
     return nm
 
+def scale_up(m, factor):
+    w = len(m[0])
+    h = len(m)
+    
+    nw = w*factor
+    nh = h*factor
+    
+    nm = []
+    
+    for l in m:
+        lines = []
+        for i in range(factor):
+            nm.append([])
+            lines.append(nm[-1])
+        for p in l:
+            for fl in lines:
+                for j in range(factor):
+                    fl.append(p)
+    return nm
+
 def grow_margin(m, margin):
     w = len(m[0])
     h = len(m)
@@ -93,6 +114,30 @@ def grow_margin(m, margin):
 
     return nm
 
+def im_to_list(im):
+    sz = im.size
+    data = list(im.getdata())
+    map2d = []
+    for i, pt in enumerate(data):
+        if i%sz[0] == 0:
+            map2d.append([])
+        if pt == (255, 255, 255):
+            map2d[-1].append(0)
+        else:
+            map2d[-1].append(1)
+    return map2d
+
+def map2d_to_im(map2d):
+    width = len(map2d[0])
+    height = len(map2d)
+    im = Image.new("RGB", (width, height), "white")
+    d = ImageDraw.Draw(im)
+#    map2d = scale_up(map2d, 4)
+    for y, l in enumerate(map2d):
+        for x, p in enumerate(l):
+            d.point((x, y), fill=("white" if p == 0 else "black"))
+    del d
+    return im
 
 if __name__ == "__main__":
     print "Test 1: Simple search"
@@ -115,15 +160,8 @@ if __name__ == "__main__":
     import Image, ImageDraw
     im = Image.open("test_map_2.png")
     sz = im.size
-    data = list(im.getdata())
-    map2d = []
-    for i, pt in enumerate(data):
-        if i%sz[0] == 0:
-            map2d.append([])
-        if pt == (255, 255, 255):
-            map2d[-1].append(0)
-        else:
-            map2d[-1].append(1)
+
+    map2d = im_to_list(im)
 #    for l in map2d:
 #        print l
     #print data
