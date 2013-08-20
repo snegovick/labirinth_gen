@@ -1,5 +1,6 @@
 import Image, ImageDraw
 import math
+from path_finding import *
 
 def calc_space_for_layers(vertices, parents, layers, layer):
     # calc sum of widths
@@ -115,11 +116,42 @@ def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
         print "box:", box
         d.rectangle(box, outline="black")
 
-    for (c_s, c_e) in connections:
-        xs = rooms[c_s][0]+rooms[c_s][2]/2+xoffset
-        ys = rooms[c_s][1]+rooms[c_s][3]/2+yoffset
-        xe = rooms[c_e][0]+rooms[c_e][2]/2+xoffset
-        ye = rooms[c_e][1]+rooms[c_e][3]/2+yoffset
+    map2d = [[0 for i in range(width)] for j in range(height)]
 
-        d.line((xs, ys, xe, ye), fill="black")
+    margin = 5
+
+    forbidden_points = []
+    for k, r in rooms.iteritems():
+        for i in range(r[2]):
+            for j in range(r[3]):
+                x = int(r[0]+xoffset+j)
+                y = int(r[1]+yoffset+i)
+                forbidden_points.append((x, y))
+
+    for (c_s, c_e) in connections:
+        xs = int(rooms[c_s][0]+rooms[c_s][2]/2+xoffset)
+        ys = int(rooms[c_s][1]+rooms[c_s][3]/2+yoffset)
+        xe = int(rooms[c_e][0]+rooms[c_e][2]/2+xoffset)
+        ye = int(rooms[c_e][1]+rooms[c_e][3]/2+yoffset)
+        path = breadth_first_search(map2d, (xs, ys), (xe, ye))
+        if path == None:
+            continue
+        for x,y in path:
+            for i in range(-margin/2, margin/2):
+                for j in range(-margin/2, margin/2):
+                    if (x+i)<0 or (y+j)<0 or (x+i)>=width or (y+j)>=height:
+                        continue
+                    if (x+i, y+j) in forbidden_points:
+                        continue
+                    map2d[y+j][x+i] = 1
+        
+    im2 = Image.new("RGB", (width, height), "white")
+    d = ImageDraw.Draw(im2)
+    for y, l in enumerate(map2d):
+        for x, p in enumerate(l):
+            d.point((x, y), fill=("white" if p == 0 else "black"))
+                
+        #d.line((xs, ys, xe, ye), fill="black")
+    
     im.save(filename)
+    im2.save("paths.png")
