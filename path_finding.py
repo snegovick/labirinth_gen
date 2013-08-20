@@ -80,24 +80,16 @@ def grow_margin(m, margin):
     w = len(m[0])
     h = len(m)
 
-    nm = []
+    nm = [[0 for pt in l] for l in m]
 
     for y, l in enumerate(m):
-        nm.append([])
         for x, p in enumerate(l):
-            can_pass = True
-            for i in range(-margin/2, margin/2):
-                for j in range(-margin/2, margin/2):
-                    if y+i<0 or x+j<0 or y+i>=h or x+j>=w:
-                        continue
-                    if m[y+i][x+j] != 0:
-                        nm[-1].append(1)
-                        can_pass = False
-                        break
-                if not can_pass:
-                    break
-            if can_pass:
-                nm[-1].append(0)
+            if m[y][x]!=0:
+                for i in range(-margin/2, margin/2):
+                    for j in range(-margin/2, margin/2):
+                        if y+i<0 or x+j<0 or y+i>=h or x+j>=w:
+                            continue
+                        nm[y+i][x+j] = 1
 
     return nm
 
