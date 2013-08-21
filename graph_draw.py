@@ -121,7 +121,7 @@ def copy_map(m):
     return mc
 
 def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
-    if len(connections)>60 or len(connections)<40:
+    if len(connections)>80 or len(connections)<60:
         return None
     border = 200
     width = width+border
