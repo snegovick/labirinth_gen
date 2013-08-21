@@ -90,7 +90,7 @@ def build_labyrinth(vertices):
 
 while True:
     rooms = {}
-    depth = 5
+    depth = 4
     max_width = 4
     vertices = {}
 

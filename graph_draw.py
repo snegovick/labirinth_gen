@@ -120,8 +120,33 @@ def copy_map(m):
         mc.append(l[:])
     return mc
 
+def draw_edges(m):
+    w = len(m[0])
+    h = len(m)
+    nm = [[0 for p in l] for l in m]
+    for y, l in enumerate(m):
+        for x, p in enumerate(l):
+            change = True
+            if x-1>=0:
+                if m[y][x-1] == 0:
+                    change = False
+            if x+1<w:
+                if m[y][x+1] == 0:
+                    change = False
+            if y-1>=0:
+                if m[y-1][x] == 0:
+                    change = False
+            if y+1<h:
+                if m[y+1][x] == 0:
+                    change = False
+            if change:
+                nm[y][x] = (1 if m[y][x] == 0 else 0)
+            else:
+                nm[y][x] = m[y][x]
+    return nm
+
 def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
-    if len(connections)>80 or len(connections)<60:
+    if len(connections)>25 or len(connections)<20:
         return None
     border = 200
     width = width+border
@@ -186,11 +211,13 @@ def draw_rooms(rooms, connections, xoffset, yoffset, width, height, filename):
         box = (x, y, x+r[2], y+r[3])
         print "box:", box
         d.rectangle(box, outline="black", fill="black")
-        d.text((x+r[2]/2, y+r[3]/2), str(k))
+        # d.text((x+r[2]/2, y+r[3]/2), str(k))
 
     map2d = im_to_list(im2)
     print "Scale up"
     nm = scale_up(map2d, 4)
+    print "Find edges"
+    nm = draw_edges(nm)
     im2 = map2d_to_im(nm)
 
     im2.save(filename)
